@@ -1,0 +1,80 @@
+[project]
+name = "fastapi-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "polars>=1.40.1",
+    "pre-commit>=4.6.0",
+    "pydantic>=2.13.4",
+    "pydantic-settings>=2.14.1",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.1.0",
+    "pre-commit>=4.6.0",
+    "rich>=15.0.0",
+    "ruff>=0.15.13",
+]
+
+[tool.ruff]
+# Tamaño máximo de línea de 88 (estándar de Black)
+line-length = 88
+target-version = "py312"
+src = ["app"]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort (orden de importaciones)
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+    "ARG",# flake8-unused-arguments
+    "SIM",# flake8-simplify
+    "RUF",# ruff-specific rules
+    "PT", # flake8-pytest-style
+]
+ignore = [
+    "E501", # line too long, manejado por el formateador
+    "B008", # llamadas a funciones en valores por defecto de argumentos
+    "W191", # tabulaciones
+]
+
+[tool.ruff.lint.isort]
+# Le indica a isort que 'app' es código de nuestra propia aplicación
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-pytest-style]
+fixture-parentheses = false
+mark-parentheses = false
+
+[tool.ruff.lint.per-file-ignores]
+# Ignora importaciones no utilizadas o errores lógicos de exportación en los Facades
+"__init__.py" = ["F401", "E402"]
+# Permitir 'assert' en la carpeta de pruebas
+"tests/**/*.py" = ["S101", "ARG"]
+
+[tool.ruff.format]
+# Preferir comillas dobles (estilo Black)
+quote-style = "double"
+# Usar espacios para la indentación
+indent-style = "space"
+# Respetar las comas finales mágicas
+skip-magic-trailing-comma = false
+# Detección automática de fines de línea
+line-ending = "auto"
+docstring-code-format = true
+
+[tool.mypy]
+# Configuración recomendada y estricta para proyectos nuevos
+python_version = "3.12"
+strict = false
+# Evitar falsos positivos con librerías de terceros no tipadas
+ignore_missing_imports = true
+# También excluimos los tests a nivel de configuración global
+exclude = ["tests"]
