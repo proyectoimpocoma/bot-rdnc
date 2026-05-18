@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import spacy
+from spacy import Language
 
 from app.core import get_app_logger
 from app.data import cargar_data
@@ -8,6 +9,7 @@ from app.data import cargar_data
 logger = get_app_logger("extractor")
 
 # Cargamos el modelo en memoria una sola vez
+nlp: Language | None = None
 try:
     nlp = spacy.load("es_core_news_lg")
 except OSError:
@@ -20,7 +22,9 @@ except OSError:
 def read_municipios():
     df = cargar_data(Path("data/subregiones.xls"))
     lista = df["NOMBRE_MPIO"].to_list()
-    lista_minusculas = [str(municipio).lower() for municipio in lista if not None]
+    lista_minusculas = [
+        str(municipio).lower() for municipio in lista if municipio is not None
+    ]
     return lista_minusculas
 
 

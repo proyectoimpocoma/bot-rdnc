@@ -11,7 +11,7 @@ def processor(df: pl.DataFrame):
     )
 
     df_grouped = (
-        df.filter(pl.col("VALORESPAGADOS") > 0)
+        df.filter((pl.col("VALORESPAGADOS") > 0) & (pl.col("VIAJESTOTALES") > 0))
         .with_columns(
             (pl.col("VALORESPAGADOS") / pl.col("VIAJESTOTALES")).alias("VALOR_UNITARIO")
         )
