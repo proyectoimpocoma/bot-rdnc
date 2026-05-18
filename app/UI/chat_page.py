@@ -29,8 +29,8 @@ def render():
         with st.chat_message("assistant"), st.spinner("Consultando RNDC.."):
             try:
                 resultado = bot.run(text_usuario)
-                df_mostrar, texto_respuesta = components.render_result(resultado)
-                state.add_message("assistant", texto_respuesta, df_mostrar)
+                _, texto_respuesta = components.render_result(resultado)
+                state.add_message("assistant", texto_respuesta, resultado)
             except Exception as e:
                 logger.error(f"Error procesando la ruta: {e}")
                 st.error("Hubo un error. Revisa que las ciudades sean correctas.")
