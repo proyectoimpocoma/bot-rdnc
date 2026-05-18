@@ -11,5 +11,5 @@ wheels/
 .env
 logs
 .ruff_cache
-**.xlsx
+**.xls*
 **.csv
