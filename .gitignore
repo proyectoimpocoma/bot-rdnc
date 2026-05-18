@@ -13,3 +13,6 @@ logs
 .ruff_cache
 **.xls*
 **.csv
+
+# Docker
+docker/**/.env

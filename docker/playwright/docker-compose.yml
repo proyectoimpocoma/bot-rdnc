@@ -1,0 +1,36 @@
+services:
+  playwright:
+    image: mcr.microsoft.com/playwright/python:v1.52.0-noble
+    container_name: bot-rdnc-playwright
+    working_dir: /app
+    volumes:
+      # Monta todo el proyecto dentro del contenedor
+      - ../../:/app
+      # Persiste el cache de uv entre reinicios
+      - uv-cache:/root/.cache/uv
+    environment:
+      # Playwright usará los browsers pre-instalados en la imagen
+      - PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+      # Variables de entorno del proyecto
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - ../../.env
+    # Mantiene el contenedor corriendo para ejecutar comandos interactivos
+    tty: true
+    stdin_open: true
+    # Limita recursos (ajustar según necesidad)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+    # Red interna
+    networks:
+      - playwright-net
+
+volumes:
+  uv-cache:
+    driver: local
+
+networks:
+  playwright-net:
+    driver: bridge
