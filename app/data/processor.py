@@ -1,0 +1,27 @@
+import polars as pl
+
+
+def processor(df: pl.DataFrame):
+    df = df.select(
+        "CONFIG_VEHICULO",
+        "MUNICIPIOORIGEN",
+        "MUNICIPIODESTINO",
+        "VIAJESTOTALES",
+        "VALORESPAGADOS",
+    )
+
+    df_grouped = (
+        df.filter(pl.col("VALORESPAGADOS") > 0)
+        .with_columns(
+            (pl.col("VALORESPAGADOS") / pl.col("VIAJESTOTALES")).alias("VALOR_UNITARIO")
+        )
+        .group_by("CONFIG_VEHICULO", "MUNICIPIOORIGEN", "MUNICIPIODESTINO")
+        .agg(
+            pl.col("VIAJESTOTALES").sum(),
+            pl.col("VALORESPAGADOS").sum(),
+            pl.col("VALOR_UNITARIO").mean().alias("VALOR_PROMEDIO_UNITARIO"),
+        )
+        .sort("VALOR_PROMEDIO_UNITARIO")
+    )
+
+    return df_grouped

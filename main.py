@@ -1,13 +1,13 @@
-from app.config.settings import settings
+from app.bot.handler import BotHandler
 from app.core.logging import get_app_logger
-from app.core.monitoring import init_monitoring
 
 logger = get_app_logger("")
 
 
 def main():
-    init_monitoring(dsn=settings.sentry_dsn, environment=settings.environment)
-    logger.info("Hello World")
+    bot = BotHandler()
+    resultado = bot.run("De Abejorral a Guarne")
+    logger.info(resultado)
 
 
 if __name__ == "__main__":
