@@ -1,56 +1,100 @@
-# Python Base Project
+# Bot RNDC / Sictac Automation
+
+Este repositorio es un proyecto de automatización y prototipo de chatbot para consultar rutas y costos en los portales RNDC y Sictac usando Playwright y Streamlit.
+
+## 🚀 Qué hace hoy
+
+- `main.py` es el punto de entrada principal.
+- `app/UI/` contiene la interfaz de usuario con Streamlit.
+- `app/scrapper/` contiene los scrapers para:
+  - `rndc.py` — automatiza el portal RNDC y descarga un archivo Excel.
+  - `sicetac.py` — automatiza el portal Sictac para configuración de ruta y cálculo de costo.
+- `app/core/logging.py` centraliza el logging en consola y en JSON.
+- `app/services/query_service.py` es la base de la lógica de consulta sobre datos cargados.
+- `app/nlp/` es el esqueleto de extracción de texto y normalización de términos.
+
+## 📦 Requisitos
+
+- Python 3.12+
+- `uv` (recomendado para el manejo de comandos)
+- Dependencias definidas en `pyproject.toml`
+
+## ⚙️ Instalación
+
+```bash
+cd c:\Users\TEMPORAL\Documents\Automation\bot-rdnc
+uv sync
+```
+
+## ▶️ Cómo ejecutar
+
+### Interfaz Streamlit
+
+```bash
+uv run streamlit run main.py
+```
+
+### Alternativa sin `uv`
+
+```bash
+python -m streamlit run main.py
+```
+
+## 🧠 Estado actual
+
+- `app/scrapper/rndc.py` ya contiene la lógica para:
+  - abrir el portal RNDC
+  - resolver el captcha numérico
+  - completar la fecha del mes anterior
+  - descargar un Excel a `data/RNDC.xlsx`
+- `app/scrapper/sicetac.py` tiene el flujo inicial del formulario Sictac y la lógica de selección de `<select>`.
+- El scraper RNDC se ejecuta hoy solo el primer día del mes cuando se lanza `main.py`.
+- El scraper Sictac se intenta ejecutar en cada arranque actual, pero está en fase de validación del flujo.
+
+## 📁 Estructura del proyecto
+
+```text
+app/
+  bot/
+  config/
+  core/
+  data/
+  nlp/
+  scrapper/
+  services/
+  UI/
+main.py
+pyproject.toml
+README.md
+docker/playwright/
+```
+
+### Carpetas clave
+
+- `app/bot/` — formatea respuestas y gestiona la lógica de bot.
+- `app/core/` — utilidades comunes, logging y configuración.
+- `app/data/` — carga y procesamiento de datos.
+- `app/nlp/` — extracción y normalización de texto natural.
+- `app/scrapper/` — automatización de navegadores con Playwright.
+- `app/UI/` — interfaz Streamlit.
+- `docker/playwright/` — configuración para ejecutar Playwright en contenedor.
+
+## 🧩 Módulos importantes
+
+- `main.py` — arranca la app y llama al scraper RNDC el día 1 del mes.
+- `app/scrapper/browser.py` — configuración del navegador Playwright y descargas.
+- `app/scrapper/selectors.py` — selectores CSS/constantes usados por los scrapers.
+- `app/scrapper/utils.py` — utilidades auxiliares como extracción de números y cálculo de fecha anterior.
+- `app/scrapper/rndc.py` — flujo RNDC.
+- `app/scrapper/sicetac.py` — flujo Sictac.
+
+## 📘 Contenido heredado del README base
+
+Este proyecto originalmente partió de una plantilla base generada con `personal-cli`. La documentación base y el checklist guardan el estado del desarrollo y ayudan a mantener el roadmap visible.
+
+### Python Base Project
 
 Este proyecto fue generado usando `personal-cli`. Es una plantilla base minimalista configurada con las mejores prácticas de la industria, ideal para scripts, librerías, o proyectos customizados que no requieren de un framework web pesado.
-
-## 🚀 Inicio Rápido
-
-### Requisitos Previos
-* [Python 3.12+](https://www.python.org/)
-* [uv](https://github.com/astral-sh/uv)
-
-### Desarrollo Local
-
-1. Instalar las dependencias y sincronizar entorno:
-   ```bash
-   uv sync
-   ```
-
-2. Ejecutar la aplicación principal:
-   ```bash
-   uv run python app/main.py
-   ```
-
-3. Instalar hooks de validación en Git para código limpio antes de cada commit:
-   ```bash
-   pre-commit install
-   ```
-
-4. Comandos útiles de validación:
-   ```bash
-   uv run ruff check --fix .
-   uv run ruff format .
-   uv run mypy .
-   ```
-
-## 📁 Estructura del Proyecto
-
-La estructura promueve la escalabilidad modular:
-* `app/core/`: Configuración central (ej. variables de entorno, logging, monitoreo).
-* `tests/`: Entorno preparado para pruebas automatizadas (excluido de linters estrictos).
-
-## **Descripción del Proyecto**
-
-- **Nombre:** Bot Queries sictac
-- **Objetivo:** Chatbot que recibe consultas en lenguaje natural (origen, destino, tipo de vehículo) y devuelve comparativas de costo entre Sictac y RNDC.
-- **Entrada:** Mensaje de chat con origen, destino y configuración de vehículo.
-- **Salida:** Respuesta formateada con costo en Sictac, precio RNDC y recomendación.
-- **Estado actual:** Código base y módulos principales creados; muchas piezas del MVP implementadas (ver checklist).
-
-Fuente principal de requerimientos: [Template Automation.txt](Template%20Automation.txt#L1).
-
-## **Checklist de Fases (Paso a paso)**
-
-Puedes marcar o desmarcar tareas usando la lista de tareas siguiente. También hay un script CLI `tools/checklist.py` para alternar tareas por su identificador (ver sección "Uso" abajo).
 
 ### Fase 0 — Preparación del repositorio
 
@@ -61,7 +105,7 @@ Puedes marcar o desmarcar tareas usando la lista de tareas siguiente. También h
 ### Fase 1 — NLP (Procesamiento de lenguaje natural)
 
 - [x] Definir entidades: ciudades, departamentos, tipo vehículo <!-- id:phase1_def_entities -->
-  - Referencia: [nlp/extractor.py](nlp/extractor.py#L1), [nlp/normalizer.py](nlp/normalizer.py#L1)
+  - Referencia: [nlp/extractor.py](app/nlp/extractor.py#L1), [nlp/normalizer.py](app/nlp/normalizer.py#L1)
 - [ ] Entrenamiento / matcher de ciudades (spaCy o alternativa) <!-- id:phase1_training -->
 - [ ] Pruebas unitarias de parsing (`test_example.py`) <!-- id:phase1_tests -->
 
@@ -105,27 +149,32 @@ Puedes marcar o desmarcar tareas usando la lista de tareas siguiente. También h
 - [ ] Contenerización / despliegue (Docker) <!-- id:phase8_docker -->
 - [ ] Documentación de operación (runbooks) <!-- id:phase8_runbooks -->
 
+## ✅ Cómo contribuir
 
-## **Pasos recomendados inmediatos (prioritarios para MVP)**
+- Actualiza selectores en `app/scrapper/selectors.py` si cambia la página.
+- Añade validación de `page.wait_for_selector(...)` en los scrapers para robustecer el flujo.
+- Implementa `app/nlp/` para mejorar el parseo de consultas en el bot.
+- Añade tests para `app/scrapper/` y `app/nlp/`.
 
-- 1) Completar el pipeline NLP: validar extractor con ejemplos reales y añadir matcher de ciudades.
-- 2) Implementar el scraping Playwright para Sictac y RNDC (end-to-end) y pruebas básicas.
-- 3) Conectar `services/query_service.py` con el scraper y el formatter para responder a consultas.
-- 4) Exponer un webhook mínimo para probar con Telegram (bot gratuito) y la UI Streamlit.
+## 🧪 Comandos útiles
 
-## **Dónde está el código relevante**
+```bash
+uv run ruff check --fix .
+uv run ruff format .
+uv run mypy .
+pre-commit install
+```
 
-- `main.py` — punto de entrada.
-- [app/bot/handler.py](app/bot/handler.py#L1) — lógica del bot.
-- [app/bot/formatter.py](app/bot/formatter.py#L1) — formateo de respuestas.
-- [nlp/extractor.py](nlp/extractor.py#L1), [nlp/normalizer.py](nlp/normalizer.py#L1) — NLP.
-- [data/loader.py](data/loader.py#L1), [data/processor.py](data/processor.py#L1) — ingest y procesamiento.
-- `docker/playwright/` — orquestación Playwright para scraping.
+## 🔍 Notas específicas
+
+- El proyecto usa `pyproject.toml` con dependencias como `playwright`, `streamlit`, `polars`, `spacy` y `rich`.
+- Para usar Playwright en Docker, revisa `docker/playwright/docker-compose.yml` y `docker/playwright/scripts/`.
+- Si el scraper falla en Streamlit, captura las excepciones en el nivel superior y muestra un mensaje amigable en lugar de dejar escapar la traza completa.
 
 ---
 
-Si quieres, puedo:
-- Ejecutar pruebas unitarias y reportar fallos.
-- Implementar el scraper básico (Playwright) para Sictac como siguiente paso.
-- Crear issues/checklist en Git con las tareas pendientes.
+Si quieres, puedo seguir con:
+- documentar un flujo completo de `rncd` + `sictac` en README;
+- actualizar el `main.py` para que el comportamiento actual sea más claro;
+- añadir un ejemplo de uso con `streamlit` y un comando de ejecución mensual.
 

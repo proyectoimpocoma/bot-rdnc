@@ -1,15 +1,21 @@
 "Utilidades para el scrapper de RNDC."
 
 from datetime import date
+from app.core import get_app_logger
+import re
+
+logger = get_app_logger("utils")
 
 
 def sum_detected(text: str) -> int:
     """Detecta y suma los números presentes en el texto dado.
     Args:
         text (str): El texto del cual se extraerán los números."""
-    numbers = [int(s) for s in text.split() if s.isdigit()]
+    nums = re.findall(r"-?\d+", text)
 
-    return sum(numbers)
+    logger.info(f"Números detectados para el captcha: {nums}")
+
+    return sum(int(n) for n in nums)
 
 
 def previous_month_year(today: date | None = None) -> str:

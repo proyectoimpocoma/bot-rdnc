@@ -52,9 +52,11 @@ def playwright_rndc():
 
     except Exception as e:
         logger.error(f"❌ Error durante la ejecución de Playwright: {e!s}")
-        raise
+        return False
 
     finally:
         context.close()
         browser.close()
         logger.info("Navegador cerrado")
+
+    return True
