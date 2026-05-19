@@ -1,8 +1,9 @@
 "Utilidades para el scrapper de RNDC."
 
-from datetime import date
-from app.core import get_app_logger
 import re
+from datetime import date
+
+from app.core import get_app_logger
 
 logger = get_app_logger("utils")
 

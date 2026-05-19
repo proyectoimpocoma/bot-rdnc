@@ -177,4 +177,3 @@ Si quieres, puedo seguir con:
 - documentar un flujo completo de `rncd` + `sictac` en README;
 - actualizar el `main.py` para que el comportamiento actual sea más claro;
 - añadir un ejemplo de uso con `streamlit` y un comando de ejecución mensual.
-

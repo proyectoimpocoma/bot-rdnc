@@ -6,8 +6,8 @@ Fecha: 13/05/26
 Analista: Luis Soler
 
 2. Objetivo del negocio
-Problema actual: Deben consular las rutas en la pagina de sictac y tener que responder una cadena de preguntas para obtener la información.  
-Objetivo de la automatización: Reducir la fricción para consultar en la pagina, agilizar como se obtienen los datos. 
+Problema actual: Deben consular las rutas en la pagina de sictac y tener que responder una cadena de preguntas para obtener la información.
+Objetivo de la automatización: Reducir la fricción para consultar en la pagina, agilizar como se obtienen los datos.
 Resultado esperado: Un chatbot que lea en lenguaje natural, origen y destino de un viaje de carga, y devuelva los datos.
 
 3. Descripción del proceso actual (AS-IS):
@@ -20,18 +20,18 @@ Pasos:
 6. Destino: Ubicación? - Ciudad - Departamento.
 7. Via? Opcional valor por defecto
 8. Horas cargue y descargue
-9. Tomar el Costo Total del Viaje 
-10. Validar valor real en RNDC el precio del flete. 
+9. Tomar el Costo Total del Viaje
+10. Validar valor real en RNDC el precio del flete.
 11. Con los mismo datos de vehiculo.
 12. Mostrar precios comparados de las paginas.
-13. Codigo de vehiculo. 
-14. Cada trayecto de vehiculo. precio de viaje unitario promediado. 
-15. Pendiente validar en tms, y comparar ruta.  
+13. Codigo de vehiculo.
+14. Cada trayecto de vehiculo. precio de viaje unitario promediado.
+15. Pendiente validar en tms, y comparar ruta.
 
 4. Entradas del proceso
-Fuente de datos: Chat 
+Fuente de datos: Chat
 Tipo de archivo: Texto narutal
-Frecuencia: 
+Frecuencia:
 Volumen de datos:
 
 5. Salidas del proceso
@@ -68,7 +68,7 @@ Riesgo 2: Errores en la automatización web (timeouts, CAPTCHAs o bloqueos por r
 Riesgo 3: Fallos en la interpretación de consultas en lenguaje natural, llevando a respuestas incorrectas o errores en la extracción de origen/destino.
 
 11. KPI / Métricas de éxito
-Tiempo esperado: 
+Tiempo esperado:
 Reducción de errores:
 Disponibilidad requerida:
 
@@ -99,7 +99,7 @@ Plataforma de chatbot: WhatsApp (usando Twilio API), Telegram Bot API, y una pá
 │        PASO 1: PROCESAMIENTO DE LENGUAJE NATURAL (NLP)                      │
 │  Opciones:                                                                  │
 │  • spaCy (reconocimiento de entidades: ciudades/departamentos)              │
-│    ⏱️ TIEMPO: 2-3 días (instalar modelo, crear matcher de ciudades)         │ 
+│    ⏱️ TIEMPO: 2-3 días (instalar modelo, crear matcher de ciudades)         │
 │  • OpenAI GPT API (parsing avanzado de texto natural)                       │
 │    ⏱️ TIEMPO: 1-2 días (setup API, testing, manejo de errores)              │
 │  • NLTK/Transformers (tokenización y clasificación gratuita)                │
@@ -235,11 +235,3 @@ SleekFlow (USD 238/mes): más caro, pero con CRM y marketing avanzado.
 Twilio (USD 234/mes): potente si quieres integrar WhatsApp con SMS/voz.
 
 YCloud (~USD 200–220/mes): flexible, depende del plan negociado.
-
-
-
-
-
-
-
-

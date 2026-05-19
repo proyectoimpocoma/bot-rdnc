@@ -1,25 +1,25 @@
-from app.core.logging import get_app_logger
-from app.UI import render
-from app.scrapper import playwright_rndc
 from datetime import date
 
+from app.core.logging import get_app_logger
+from app.scrapper import playwright_rndc
 from app.scrapper.browser import new_rndc_page
-from app.scrapper.utils import sum_detected
 from app.scrapper.selectors import (
-    URL_SICETAC,
-    SELECTOR_CONFIG_VEHICULO,
+    SELECTOR_BT_CALCULAR,
+    SELECTOR_CAPTCHA,
+    SELECTOR_CARROCERIA_VEHICULO,
     SELECTOR_CONDICION_CARGA,
-    SELECTOR_TIPO_CARGA,
-    SELECTOR_ORIGEN_VIAJE,
+    SELECTOR_CONFIG_VEHICULO,
+    SELECTOR_COSTO_TOTAL_VIAJE,
     SELECTOR_DESTINO_VIAJE,
     SELECTOR_HORAS_CARGUE,
     SELECTOR_HORAS_DESCARGUE,
-    SELECTOR_CARROCERIA_VEHICULO,
-    SELECTOR_CAPTCHA,
+    SELECTOR_ORIGEN_VIAJE,
     SELECTOR_RESULTADO_CAPTCHA,
-    SELECTOR_BT_CALCULAR,
-    SELECTOR_COSTO_TOTAL_VIAJE,
+    SELECTOR_TIPO_CARGA,
+    URL_SICETAC,
 )
+from app.scrapper.utils import sum_detected
+from app.UI import render
 
 logger = get_app_logger("main")
 
@@ -65,6 +65,7 @@ def playwright_sicetac():
 
         result = page.wait_for_selector(SELECTOR_COSTO_TOTAL_VIAJE).input_value()
         logger.info(f"Resultado del cálculo: {result}")
+        page.wait_for_timeout(9000)
 
     except Exception as e:
         logger.error(f"Error en playwright_sicetac: {e!s}")

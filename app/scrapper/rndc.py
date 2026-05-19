@@ -3,13 +3,13 @@
 from app.core.logging import get_app_logger
 from app.scrapper.browser import new_rndc_page
 from app.scrapper.selectors import (
-    URL,
-    SELECTOR_CAPTCHA,
-    SELECTOR_RESULTADO,
-    SELECTOR_FECHA_INICIAL,
     SELECTOR_BT_ESTADISTICAS,
+    SELECTOR_CAPTCHA,
+    SELECTOR_FECHA_INICIAL,
+    SELECTOR_RESULTADO,
+    URL,
 )
-from app.scrapper.utils import sum_detected, previous_month_year
+from app.scrapper.utils import previous_month_year, sum_detected
 
 logger = get_app_logger("rndc")
 

@@ -7,7 +7,7 @@ from app.core import get_app_logger
 logger = get_app_logger("loader")
 
 
-def cargar_data(path: Path, skip_rows: int = 0) -> pl.DataFrame:
+def cargar_data(path: Path) -> pl.DataFrame:
     """Carga los datos desde un archivo Excel en un DataFrame de Polars."""
 
     # Buena práctica: Validar que el archivo existe antes de intentar abrirlo
