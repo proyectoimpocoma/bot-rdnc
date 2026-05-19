@@ -20,8 +20,8 @@ except OSError:
 
 
 def read_municipios():
-    df = cargar_data(Path("data/subregiones.xls"))
-    lista = df["NOMBRE_MPIO"].to_list()
+    df = cargar_data(Path("data/municipios.xls"), skip_rows=5)
+    lista = df["Nombre_Municipio"].to_list()
     lista_minusculas = [
         str(municipio).lower() for municipio in lista if municipio is not None
     ]
@@ -30,7 +30,12 @@ def read_municipios():
 
 def add_rules():
     if nlp is None:
-        raise RuntimeError("El modelo de NLP no esta disponible")
+        raise RuntimeError(
+            "No se encontró el modelo de spaCy. Ejecuta: uv run python -m spacy download es_core_news_lg"
+        )
+        logger.error(
+            "No se encontró el modelo de spaCy. Ejecuta: uv run python -m spacy download es_core_news_lg"
+        )
 
     # Validar que no hayamos agregado la regla antes
     if "entity_ruler" in nlp.pipe_names:
