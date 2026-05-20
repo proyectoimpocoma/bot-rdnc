@@ -1,79 +1,16 @@
+""" Módulo principal para ejecutar el bot de scrapping de RDNC y SICETAC."""
+
 from datetime import date
 
 from app.core.logging import get_app_logger
-from app.scrapper import playwright_rndc
-from app.scrapper.browser import new_rndc_page
-from app.scrapper.selectors import (
-    SELECTOR_BT_CALCULAR,
-    SELECTOR_CAPTCHA,
-    SELECTOR_CARROCERIA_VEHICULO,
-    SELECTOR_CONDICION_CARGA,
-    SELECTOR_CONFIG_VEHICULO,
-    SELECTOR_COSTO_TOTAL_VIAJE,
-    SELECTOR_DESTINO_VIAJE,
-    SELECTOR_HORAS_CARGUE,
-    SELECTOR_HORAS_DESCARGUE,
-    SELECTOR_ORIGEN_VIAJE,
-    SELECTOR_RESULTADO_CAPTCHA,
-    SELECTOR_TIPO_CARGA,
-    URL_SICETAC,
-)
-from app.scrapper.utils import sum_detected
+from app.scrapper import playwright_rndc,playwright_sicetac
+
 from app.UI import render
 
 logger = get_app_logger("main")
 
 
-def playwright_sicetac():
-    """Función placeholder para el scrapper de SICETAC."""
-    logger.info("playwright_sicetac aún no implementado.")
-    browser, context, page = new_rndc_page()
-    try:
-        page.goto(URL_SICETAC)
-        logger.info(f"Navegando a: {URL_SICETAC}")
-
-        config_vehiculo = page.locator(SELECTOR_CONFIG_VEHICULO).select_option(
-            "Tractocamión tres ejes con semiremolque de tres ejes"
-        )
-
-        condicion_carga = page.locator(SELECTOR_CONDICION_CARGA).select_option(
-            "CARGADO"
-        )
-
-        carroceria_vehiculo = page.locator(SELECTOR_CARROCERIA_VEHICULO).select_option(
-            "ESTACAS"
-        )
-        tipo_carga = page.locator(SELECTOR_TIPO_CARGA).select_option("General")
-
-        origen_viaje = page.locator(SELECTOR_ORIGEN_VIAJE).select_option(
-            "ABEJORRAL - ABEJORRAL - ANTIOQUIA"
-        )
-
-        destino_viaje = page.locator(SELECTOR_DESTINO_VIAJE).select_option(
-            "GUARNE - GUARNE - ANTIOQUIA"
-        )
-
-        horas_cargue = page.locator(SELECTOR_HORAS_CARGUE).fill("4")
-        horas_descargue = page.locator(SELECTOR_HORAS_DESCARGUE).fill("4")
-
-        capcha_text = page.locator(SELECTOR_CAPTCHA).text_content()
-        sum_captcha = sum_detected(str(capcha_text))
-
-        page.locator(SELECTOR_RESULTADO_CAPTCHA).fill(str(sum_captcha))
-
-        page.locator(SELECTOR_BT_CALCULAR).click()
-
-        result = page.wait_for_selector(SELECTOR_COSTO_TOTAL_VIAJE).input_value()
-        logger.info(f"Resultado del cálculo: {result}")
-        page.wait_for_timeout(9000)
-
-    except Exception as e:
-        logger.error(f"Error en playwright_sicetac: {e!s}")
-        return False
-    finally:
-        context.close()
-        browser.close()
-        logger.info("Navegador cerrado en playwright_sicetac.")
+    
 
 
 def main():

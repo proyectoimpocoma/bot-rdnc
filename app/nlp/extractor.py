@@ -20,7 +20,7 @@ except OSError:
 
 
 def read_municipios():
-    df = cargar_data(Path("data/municipios.xls"), skip_rows=5)
+    df = cargar_data(Path("data/municipios.xls"))
     lista = df["Nombre_Municipio"].to_list()
     lista_minusculas = [
         str(municipio).lower() for municipio in lista if municipio is not None
