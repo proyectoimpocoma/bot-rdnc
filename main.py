@@ -1,16 +1,12 @@
-""" Módulo principal para ejecutar el bot de scrapping de RDNC y SICETAC."""
+"""Módulo principal para ejecutar el bot de scrapping de RDNC y SICETAC."""
 
 from datetime import date
 
 from app.core.logging import get_app_logger
-from app.scrapper import playwright_rndc,playwright_sicetac
-
+from app.scrapper import playwright_rndc
 from app.UI import render
 
 logger = get_app_logger("main")
-
-
-    
 
 
 def main():
@@ -21,11 +17,6 @@ def main():
             playwright_rndc()
         except Exception as e:
             logger.error(f"Error ejecutando playwright_rndc: {e!s}")
-
-    try:
-        playwright_sicetac()
-    except Exception as e:
-        logger.error(f"Error ejecutando playwright_sicetac: {e!s}")
 
 
 if __name__ == "__main__":

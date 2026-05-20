@@ -14,6 +14,24 @@ def clean_text(text: str) -> str:
     return text.lower().strip()
 
 
+def fuzzy_match_best(
+    query: str,
+    candidates: list[str],
+    threshold: int = 80,
+    scorer=fuzz.token_set_ratio,
+) -> tuple[str, float, int] | None:
+    """Busca el mejor match fuzzy de un query dentro de una lista de candidatos."""
+    match = process.extractOne(
+        query,
+        candidates,
+        scorer=scorer,
+        processor=utils.default_process,
+    )
+    if match and match[1] >= threshold:
+        return match
+    return None
+
+
 def normalizar_municipios(
     nombre: str | None, lista: list[str], umbral: int = 80
 ) -> str | None:
@@ -27,40 +45,32 @@ def normalizar_municipios(
     ]
 
     # --- INTENTO 1: Usando la lista recortada ---
-    march_corto = process.extractOne(
-        nombre_limpio,
-        lista_cortada,
-        scorer=fuzz.token_set_ratio,
-        processor=utils.default_process,
-    )
-
-    if march_corto:
-        _, score_corto, indice = march_corto
-        if score_corto >= umbral:
-            resultado_final = lista[indice]
-            logger.info(
-                f"✅ ACEPTADO (Corto): '{nombre}' -> '{resultado_final}' (Score: {score_corto:.1f})"
-            )
-            return resultado_final
+    match_corto = fuzzy_match_best(nombre_limpio, lista_cortada, threshold=umbral)
+    if match_corto:
+        _, score_corto, indice = match_corto
+        resultado_final = lista[indice]
+        logger.info(
+            f"✅ ACEPTADO (Corto): '{nombre}' -> '{resultado_final}' (Score: {score_corto:.1f})"
+        )
+        return resultado_final
 
     # --- INTENTO 2: Si falló, intentar con la lista completa ---
+    match_completo = fuzzy_match_best(nombre_limpio, lista, threshold=umbral)
+    if match_completo:
+        resultado_completo, score_completo, _ = match_completo
+        logger.info(
+            f"✅ ACEPTADO (Completo): '{nombre}' -> '{resultado_completo}' (Score: {score_completo:.1f})"
+        )
+        return resultado_completo
+
+    # --- RECHAZADO: Si ninguno superó el umbral ---
+    # Logeamos el que sacó mejor puntaje para saber qué falló
     match_completo = process.extractOne(
         nombre_limpio,
         lista,
         scorer=fuzz.token_set_ratio,
         processor=utils.default_process,
     )
-
-    if match_completo:
-        resultado_completo, score_completo, _ = match_completo
-        if score_completo >= umbral:
-            logger.info(
-                f"✅ ACEPTADO (Completo): '{nombre}' -> '{resultado_completo}' (Score: {score_completo:.1f})"
-            )
-            return resultado_completo
-
-    # --- RECHAZADO: Si ninguno superó el umbral ---
-    # Logeamos el que sacó mejor puntaje para saber qué falló
     if match_completo:
         mejor_res, mejor_score, _ = match_completo
         logger.warning(

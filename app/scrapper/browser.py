@@ -1,12 +1,14 @@
 """Crea una nueva página de Playwright para interactuar con el sitio web de RNDC."""
 
-from playwright.sync_api import sync_playwright
+from playwright.async_api import async_playwright
 
 
-def new_rndc_page():
+async def new_rndc_page():
     """Crea una nueva página de Playwright para interactuar con el sitio web de RNDC."""
-    p = sync_playwright().start()
-    browser = p.chromium.launch(headless=False, channel="chrome", timeout=30000)
-    context = browser.new_context(accept_downloads=True)
-    page = context.new_page()  # ✅ Correcto: context.new_page(), no browser.new_page()
-    return browser, context, page
+    playwright = await async_playwright().start()
+    browser = await playwright.chromium.launch(
+        headless=False, channel="chrome", timeout=30000
+    )
+    context = await browser.new_context(accept_downloads=True)
+    page = await context.new_page()
+    return playwright, browser, context, page
