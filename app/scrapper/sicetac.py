@@ -25,62 +25,72 @@ from app.scrapper.utils import sum_detected
 logger = get_app_logger("main")
 
 
-async def export_sicetac_data(output_path: Path):
-    """Exporta las opciones de SICETAC a JSON."""
+async def export_sicetac_combinaciones(output_path: Path):
+    """Exporta las combinaciones de origen y destino disponibles en SICETAC."""
     playwright, browser, context, page = await new_rndc_page()
     try:
         await page.goto(URL_SICETAC)
+        await page.wait_for_selector(SELECTOR_ORIGEN_VIAJE)
 
-        origen_options = [
+        origenes = [
             text.strip()
             for text in await page.locator(
                 f"{SELECTOR_ORIGEN_VIAJE} option"
             ).all_text_contents()
             if text.strip()
         ]
-        destino_options = [
-            text.strip()
-            for text in await page.locator(
-                f"{SELECTOR_DESTINO_VIAJE} option"
-            ).all_text_contents()
-            if text.strip()
-        ]
-        payload = {"origen": origen_options, "destino": destino_options}
+
+        combos = {}
+        for origen in origenes:
+            await page.locator(SELECTOR_ORIGEN_VIAJE).select_option(origen)
+            await page.wait_for_timeout(500)  # esperar que el destino se actualice
+
+            destinos = [
+                text.strip()
+                for text in await page.locator(
+                    f"{SELECTOR_DESTINO_VIAJE} option"
+                ).all_text_contents()
+                if text.strip()
+            ]
+            combos[origen] = destinos
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+            json.dumps(combos, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-        return payload
-
-    finally:
-        await context.close()
-        await browser.close()
-        await playwright.stop()
+        return combos
+    except Exception as e:
+        logger.error(f"Error exportando combinaciones SICETAC: {e!s}")
 
 
-async def playwright_sicetac(origen: str, destino: str):
+async def playwright_sicetac(
+    origen: str,
+    destino: str,
+    configuracion: str,
+    condicion_carga: str,
+    Carroceria: str,
+    tipo_carga: str,
+) -> str | bool:
     """Función placeholder para el scrapper de SICETAC."""
     logger.info("playwright_sicetac aún no implementado.")
+
+    # options_path = Path("data/sicetac_combinaciones.json")
+    # if not options_path.exists():
+    # await export_sicetac_combinaciones(options_path)
+
     playwright, browser, context, page = await new_rndc_page()
     try:
         await page.goto(URL_SICETAC)
         logger.info(f"Navegando a: {URL_SICETAC}")
 
-        await page.locator(SELECTOR_CONFIG_VEHICULO).select_option(
-            "Tractocamión tres ejes con semiremolque de tres ejes"
-        )
-
-        await page.locator(SELECTOR_CONDICION_CARGA).select_option("CARGADO")
-        await page.locator(SELECTOR_CARROCERIA_VEHICULO).select_option("ESTACAS")
-        await page.locator(SELECTOR_TIPO_CARGA).select_option("General")
-
-        options_path = Path("data/sicetac_options.json")
-        if not options_path.exists():
-            await export_sicetac_data(options_path)
-
         await page.locator(SELECTOR_ORIGEN_VIAJE).select_option(origen)
         await page.locator(SELECTOR_DESTINO_VIAJE).select_option(destino)
+
+        await page.locator(SELECTOR_CONFIG_VEHICULO).select_option(configuracion)
+
+        await page.locator(SELECTOR_CONDICION_CARGA).select_option(condicion_carga)
+        await page.locator(SELECTOR_CARROCERIA_VEHICULO).select_option(Carroceria)
+        await page.locator(SELECTOR_TIPO_CARGA).select_option(tipo_carga)
 
         await page.locator(SELECTOR_HORAS_CARGUE).fill("4")
         await page.locator(SELECTOR_HORAS_DESCARGUE).fill("4")
@@ -93,7 +103,6 @@ async def playwright_sicetac(origen: str, destino: str):
 
         value = await page.locator(SELECTOR_COSTO_TOTAL_VIAJE).input_value()
         logger.info(f"Resultado del cálculo: {value}")
-        await page.wait_for_timeout(9000)
 
         return value
     except Exception as e:

@@ -1,15 +1,20 @@
+""" """
+
 import asyncio
 from pathlib import Path
 
-from spacy.util import logger
 
+from app.core.logging import get_app_logger
 from app.data import cargar_data, processor
-from app.nlp import extractor_entity, normalizar_municipios
 from app.nlp.extractor import add_rules, read_municipios
 from app.scrapper import playwright_sicetac
 from app.services import consultar_ruta
+from app.nlp.normalizer import normalizar_municipios
+import polars as pl
 
 PATH_FILE = Path("data/RNDC.xlsx")
+
+logger = get_app_logger("bot_handler")
 
 
 class BotHandler:
@@ -18,37 +23,77 @@ class BotHandler:
         self.df = processor(df_raw)
         self.origenes = self.df["MUNICIPIOORIGEN"].unique()
         self.destinos = self.df["MUNICIPIODESTINO"].unique()
-        self.municipios = read_municipios()
+        self.municipios = (
+            pl.concat([self.origenes, self.destinos]).unique().unique().to_list()
+        )
         add_rules()
 
-    def run_scrapping(self, origen: str, destino: str):
+    def _run_scrapping(
+        self,
+        origen: str,
+        destino: str,
+        configuracion: str,
+        condicion_carga: str = "CARGADO",
+        Carroceria: str = "ESTACAS",
+        tipo_carga: str = "General",
+    ):
+        logger.info(
+            f"Ejecutando scrapping con: Origen='{origen}', Destino='{destino}', Configuración='{configuracion}', Condición de Carga='{condicion_carga}', Carrocería='{Carroceria}', Tipo de Carga='{tipo_carga}'"
+        )
         try:
-            asyncio.run(playwright_sicetac(origen, destino))
+            return asyncio.run(
+                playwright_sicetac(
+                    origen,
+                    destino,
+                    configuracion,
+                    condicion_carga,
+                    Carroceria,
+                    tipo_carga,
+                )
+            )
         except Exception as e:
             logger.error(f"Error ejecutando playwright_sicetac: {e!s}")
+            return False
 
-    def run(self, text: str):
-        ruta = extractor_entity(text)
+    def run(
+        self,
+        origen: str,
+        destino: str,
+        configuracion: str,
+        condicion_carga: str,
+        Carroceria: str,
+        tipo_carga: str,
+    ) -> dict:
+        logger.info(
+            "Iniciando proceso de consulta de ruta con los siguientes parámetros:"
+        )
+        # Normalizar los nombres de origen y destino usando la lista combinada de municipios
+        origen_df = normalizar_municipios(origen, self.municipios)
+        destino_df = normalizar_municipios(destino, self.municipios)
 
-        if not ruta["origen"] or not ruta["destino"]:
+        if not origen_df or not destino_df:
             raise ValueError(
                 "No pude identificar las ciudades de origen y destino. "
-                "Intenta con algo como: 'De Bogotá a Medellín'"
+                "Selecciona ambos campos antes de continuar."
             )
 
-        origen = normalizar_municipios(ruta["origen"], self.municipios)
-        destino = normalizar_municipios(ruta["destino"], self.municipios)
-
-        if not origen or not destino:
-            raise ValueError(
-                "No pude normalizar la ciudad de origen o destino. "
-                "Verifica la ortografía o usa el nombre completo del municipio."
-            )
-
-        costo = asyncio.run(playwright_sicetac(origen, destino))
+        costo = self._run_scrapping(
+            origen,
+            destino,
+            configuracion,
+            condicion_carga,
+            Carroceria,
+            tipo_carga,
+        )
         return {
             "origen": origen,
             "destino": destino,
+            "configuracion": configuracion,
             "costo_sicetac": costo,
-            "ruta_db": consultar_ruta(self.df, origen, destino),
+            "ruta_db": consultar_ruta(
+                self.df,
+                origen=origen_df,
+                destino=destino_df,
+                configuracion=configuracion,
+            ),
         }

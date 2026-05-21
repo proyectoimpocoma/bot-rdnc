@@ -3,7 +3,7 @@ import polars as pl
 
 def processor(df: pl.DataFrame):
     df = df.select(
-        "CONFIG_VEHICULO",
+        "COD_CONFIG_VEHICULO",
         "MUNICIPIOORIGEN",
         "MUNICIPIODESTINO",
         "VIAJESTOTALES",
@@ -15,7 +15,7 @@ def processor(df: pl.DataFrame):
         .with_columns(
             (pl.col("VALORESPAGADOS") / pl.col("VIAJESTOTALES")).alias("VALOR_UNITARIO")
         )
-        .group_by("CONFIG_VEHICULO", "MUNICIPIOORIGEN", "MUNICIPIODESTINO")
+        .group_by("COD_CONFIG_VEHICULO", "MUNICIPIOORIGEN", "MUNICIPIODESTINO")
         .agg(
             pl.col("VIAJESTOTALES").sum(),
             pl.col("VALORESPAGADOS").sum(),
