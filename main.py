@@ -1,6 +1,7 @@
 """Módulo principal para ejecutar el bot de scrapping de RDNC y SICETAC."""
 
 from datetime import date
+import os
 
 from app.core.logging import get_app_logger
 from app.scrapper import playwright_rndc
@@ -11,10 +12,9 @@ logger = get_app_logger("main")
 
 
 def main():
-    asyncio.run(playwright_rndc())
     render()
 
-    if date.today().day == 1:
+    if date.today().day == 1 or os.path.exists("data/RNDC.xlsx") is False:
         try:
             asyncio.run(playwright_rndc())
         except Exception as e:
