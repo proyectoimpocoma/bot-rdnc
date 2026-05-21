@@ -12,7 +12,6 @@ logger = get_app_logger("main")
 
 
 def main():
-    asyncio.run(playwright_rndc())
     render()
     # o ruta no existe, o es el día 1 del mes, o es el día 2 del mes y no se ha descargado el archivo aún
     if date.today().day == 1 or os.path.exists("data/RNDC.xlsx") is False:
