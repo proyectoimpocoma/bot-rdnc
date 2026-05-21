@@ -46,14 +46,13 @@ def get_bot() -> BotHandler:
 def ejecutar(origen, destino, configuracion, condicion_carga, Carroceria, tipo_carga):
     "Ejecuta la consulta de ruta en el bot y muestra los resultados en la interfaz."
     # Bloqueamos el botón y mostramos un spinner durante la operación
-
-    bot = get_bot()
-
     if not origen or not destino:
         st.warning(
             "Selecciona ciudad de origen y ciudad de destino antes de consultar."
         )
         return
+
+    bot = get_bot()
 
     st.session_state.loading = True
     try:
