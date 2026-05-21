@@ -26,7 +26,7 @@ class BotHandler:
         self.municipios = (
             pl.concat([self.origenes, self.destinos]).unique().unique().to_list()
         )
-        add_rules()
+       
 
     def _run_scrapping(
         self,
