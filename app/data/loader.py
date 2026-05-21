@@ -5,6 +5,7 @@ import polars as pl
 import streamlit as st
 
 from app.core import get_app_logger
+from app.scrapper.rndc import playwright_rndc
 
 logger = get_app_logger("loader")
 
@@ -14,6 +15,7 @@ def cargar_data(path: Path) -> pl.DataFrame:
 
     # Buena práctica: Validar que el archivo existe antes de intentar abrirlo
     if not path.exists():
+        playwright_rndc()
         logger.error(f"El archivo no existe en la ruta: {path}")
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
     try:
