@@ -1,21 +1,16 @@
 import streamlit as st
 
 
-def render_chat_history(messages: list):
-    """Dibuja todos los mensajes anteriores en pantalla."""
-    for msg in messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
-
-
 def render_result(resultado: dict | None):
     """Renderiza el dataframe de resultados del bot."""
-    if (
-        resultado["ruta_db"] is None
-        or resultado["ruta_db"].is_empty()
-        or resultado["costo_sicetac"] is None
-    ):
-        msg = "No encontre resultados exactos para esa ruta."
+    if resultado["ruta_db"] is None or resultado["ruta_db"].is_empty():
+        msg = "No encontre resultados exactos para esa ruta en RDNC. Probablemente no haya datos suficientes para esa combinación de origen, destino y configuración de vehículo. "
+        if resultado["costo_sicetac"]:
+            sicetac = f"- 🧾 Costo SICETAC: `{resultado['costo_sicetac']}`"
+            msg += sicetac
+        else:
+            msg += "No se pudo obtener el costo de SICETAC para esta ruta."
+
         st.markdown(msg)
         return None, msg
 
@@ -33,6 +28,7 @@ def render_result(resultado: dict | None):
     # Calcular metricas
     total_viajes = df_group["VIAJESTOTALES"].sum()
     costo_promedio_unitario = df_group["VALOR_PROMEDIO_UNITARIO"].mean()
+    # diferencia_costo = costo_promedio_unitario - sicetac
 
     # Mostrar en 3 columnas con números formateados
 

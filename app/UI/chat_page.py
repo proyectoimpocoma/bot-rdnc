@@ -1,13 +1,12 @@
 "Módulo de la interfaz de chat para cotización de rutas RNDC utilizando Streamlit."
 
-import json
-from pathlib import Path
-
 import polars as pl
 import streamlit as st
+import json
 
 from app.bot.handler import BotHandler
 from app.core import get_app_logger
+from app.data.loader import load_sicetac_ciudades
 from app.UI import components, state
 
 logger = get_app_logger("chat_page")
@@ -29,33 +28,17 @@ CONFIGURACIONES_VEHICULO = [
 
 
 @st.cache_data
-def load_sicetac_ciudades(
-    path: Path = Path("data/sicetac_options.json"),
-) -> tuple[list[str], list[str]]:
-    if not path.exists():
-        return [], []
-
-    with path.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
-
-    origenes = payload.get("origen", [])
-    destinos = payload.get("destino", [])
-    return origenes, destinos
-
-
-def get_destinos_por_origen(origen: str, df: pl.DataFrame) -> list[str]:
+def get_destinos_por_origen(origen: str) -> list[str]:
     if not origen:
         return []
 
-    destinos = (
-        df.filter(pl.col("MUNICIPIOORIGEN") == origen)
-        .select("MUNICIPIODESTINO")
-        .unique()
-        .sort("MUNICIPIODESTINO")
-        .to_series()
-        .to_list()
+    with open("data/sicetac_combinaciones.json", encoding="utf-8") as f:
+        combinaciones = json.load(f)
+
+    logger.info(
+        f"Obteniendo destinos para origen: {origen} con {combinaciones[origen]} combinaciones"
     )
-    return destinos
+    return combinaciones.get(origen, [])
 
 
 @st.cache_resource
@@ -88,6 +71,13 @@ def ejecutar(origen, destino, configuracion, condicion_carga, Carroceria, tipo_c
             )
 
             st.session_state.resultado = resultado
+    except ValueError as e:
+        st.error(
+            f"Error: Ciudad o municipio no encontrado - seleccione un origen y destino válidos. {e}"
+        )
+    except Exception as e:
+        st.error(f"Error inesperado al consultar la ruta: {e!s}")
+        logger.error(f"Error inesperado al consultar la ruta: {e!s}")
     finally:
         st.session_state.loading = False
 
@@ -116,14 +106,12 @@ def render():
             key="origen",
         )
 
-    # destinos_disponibles = (
-    #   get_destinos_por_origen(origen, bot.df) if origen else destinos
-    # )
+    destinos_disponibles = get_destinos_por_origen(origen)
 
     with col3:
         destino = st.selectbox(
             "Ciudad de destino",
-            ["", *destinos],
+            ["", *destinos_disponibles],
             key="destino",
         )
 

@@ -3,14 +3,14 @@
 import asyncio
 from pathlib import Path
 
+import polars as pl
 
 from app.core.logging import get_app_logger
 from app.data import cargar_data, processor
-from app.nlp.extractor import add_rules, read_municipios
+from app.nlp.extractor import add_rules
+from app.nlp.normalizer import normalizar_municipios
 from app.scrapper import playwright_sicetac
 from app.services import consultar_ruta
-from app.nlp.normalizer import normalizar_municipios
-import polars as pl
 
 PATH_FILE = Path("data/RNDC.xlsx")
 

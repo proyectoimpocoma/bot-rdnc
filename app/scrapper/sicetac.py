@@ -1,10 +1,8 @@
 """Módulo para scrapping de SICETAC utilizando Playwright."""
 
-import json
-from pathlib import Path
-
 from app.core import get_app_logger
 from app.scrapper.browser import new_rndc_page
+from app.scrapper.decorator import retry_on_timeout
 from app.scrapper.selectors import (
     SELECTOR_BT_CALCULAR,
     SELECTOR_CAPTCHA,
@@ -25,42 +23,11 @@ from app.scrapper.utils import sum_detected
 logger = get_app_logger("main")
 
 
-async def export_sicetac_combinaciones(output_path: Path):
-    """Exporta las combinaciones de origen y destino disponibles en SICETAC."""
-    playwright, browser, context, page = await new_rndc_page()
-    try:
-        await page.goto(URL_SICETAC)
-        await page.wait_for_selector(SELECTOR_ORIGEN_VIAJE)
-
-        origenes = [
-            text.strip()
-            for text in await page.locator(
-                f"{SELECTOR_ORIGEN_VIAJE} option"
-            ).all_text_contents()
-            if text.strip()
-        ]
-
-        combos = {}
-        for origen in origenes:
-            await page.locator(SELECTOR_ORIGEN_VIAJE).select_option(origen)
-            await page.wait_for_timeout(500)  # esperar que el destino se actualice
-
-            destinos = [
-                text.strip()
-                for text in await page.locator(
-                    f"{SELECTOR_DESTINO_VIAJE} option"
-                ).all_text_contents()
-                if text.strip()
-            ]
-            combos[origen] = destinos
-
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(
-            json.dumps(combos, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        return combos
-    except Exception as e:
-        logger.error(f"Error exportando combinaciones SICETAC: {e!s}")
+@retry_on_timeout(retries=2, delay=1)
+async def abrir_sicetac(page):
+    """Abre la página de SICETAC y espera a que el selector de origen esté disponible."""
+    await page.goto(URL_SICETAC, timeout=15000)
+    await page.wait_for_selector(SELECTOR_ORIGEN_VIAJE, timeout=10000)
 
 
 async def playwright_sicetac(
@@ -80,7 +47,7 @@ async def playwright_sicetac(
 
     playwright, browser, context, page = await new_rndc_page()
     try:
-        await page.goto(URL_SICETAC)
+        await abrir_sicetac(page)
         logger.info(f"Navegando a: {URL_SICETAC}")
 
         await page.locator(SELECTOR_ORIGEN_VIAJE).select_option(origen)

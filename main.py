@@ -4,7 +4,7 @@ from datetime import date
 
 from app.core.logging import get_app_logger
 from app.scrapper import playwright_rndc
-from app.UI import render
+from app.UI.chat_page import render
 
 logger = get_app_logger("main")
 

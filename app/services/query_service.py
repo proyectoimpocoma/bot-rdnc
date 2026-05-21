@@ -1,7 +1,7 @@
 import polars as pl
+from rapidfuzz import fuzz, process, utils
 
 from app.core import get_app_logger
-from rapidfuzz import fuzz, process, utils
 
 logger = get_app_logger("query_service")
 
