@@ -7,7 +7,6 @@ import polars as pl
 
 from app.core.logging import get_app_logger
 from app.data import cargar_data, processor
-from app.nlp.extractor import add_rules
 from app.nlp.normalizer import normalizar_municipios
 from app.scrapper import playwright_sicetac
 from app.services import consultar_ruta
@@ -26,7 +25,6 @@ class BotHandler:
         self.municipios = (
             pl.concat([self.origenes, self.destinos]).unique().unique().to_list()
         )
-        add_rules()
 
     def _run_scrapping(
         self,
