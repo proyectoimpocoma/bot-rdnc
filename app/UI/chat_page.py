@@ -89,7 +89,6 @@ def render():
     st.title("Cotizacion de Rutas RNDC")
 
     state.init_state()
-    components.render_chat_history(st.session_state.message)
 
     origenes, destinos = load_sicetac_ciudades()
 
