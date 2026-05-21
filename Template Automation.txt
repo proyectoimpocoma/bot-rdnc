@@ -149,7 +149,7 @@ Plataforma de chatbot: WhatsApp (usando Twilio API), Telegram Bot API, y una pá
 │                                                                              │
 │  RECOMENDACIÓN: polar + SQLite (flexible y escalable)                      │
 └────────────────────────────────┬────────────────────────────────────────────┘
-                                 │
+                              │
                                  ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                      PASO 4: SALIDA / RESPUESTA FORMATEADA                  │

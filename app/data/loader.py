@@ -15,7 +15,6 @@ def cargar_data(path: Path) -> pl.DataFrame:
 
     # Buena práctica: Validar que el archivo existe antes de intentar abrirlo
     if not path.exists():
-        playwright_rndc()
         logger.error(f"El archivo no existe en la ruta: {path}")
         raise FileNotFoundError(f"Archivo no encontrado: {path}")
     try:
