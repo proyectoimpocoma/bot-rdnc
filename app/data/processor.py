@@ -1,7 +1,16 @@
 import polars as pl
 
+from app.core.logging import get_app_logger
+
+logger = get_app_logger("processor")
+
 
 def processor(df: pl.DataFrame):
+    logger.info(df.head())
+    df = df.filter(
+        ~pl.col("NATURALEZACARGA").is_in(["Carga Peligrosa", "Desechos Peligrosos"])
+    )
+
     df = df.select(
         "COD_CONFIG_VEHICULO",
         "MUNICIPIOORIGEN",
@@ -23,5 +32,6 @@ def processor(df: pl.DataFrame):
         )
         .sort("VALOR_PROMEDIO_UNITARIO")
     )
+    logger.info(df_grouped.head())
 
     return df_grouped

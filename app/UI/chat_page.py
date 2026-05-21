@@ -35,9 +35,6 @@ def get_destinos_por_origen(origen: str) -> list[str]:
     with open("data/sicetac_combinaciones.json", encoding="utf-8") as f:
         combinaciones = json.load(f)
 
-    logger.info(
-        f"Obteniendo destinos para origen: {origen} con {combinaciones[origen]} combinaciones"
-    )
     return combinaciones.get(origen, [])
 
 
