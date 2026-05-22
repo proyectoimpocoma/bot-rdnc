@@ -1,9 +1,17 @@
 import polars as pl
 
+from app.core.logging import get_app_logger
+
+logger = get_app_logger("processor")
+
 
 def processor(df: pl.DataFrame):
+    df = df.filter(
+        ~pl.col("NATURALEZACARGA").is_in(["Carga Peligrosa", "Desechos Peligrosos"])
+    )
+
     df = df.select(
-        "CONFIG_VEHICULO",
+        "COD_CONFIG_VEHICULO",
         "MUNICIPIOORIGEN",
         "MUNICIPIODESTINO",
         "VIAJESTOTALES",
@@ -15,7 +23,7 @@ def processor(df: pl.DataFrame):
         .with_columns(
             (pl.col("VALORESPAGADOS") / pl.col("VIAJESTOTALES")).alias("VALOR_UNITARIO")
         )
-        .group_by("CONFIG_VEHICULO", "MUNICIPIOORIGEN", "MUNICIPIODESTINO")
+        .group_by("COD_CONFIG_VEHICULO", "MUNICIPIOORIGEN", "MUNICIPIODESTINO")
         .agg(
             pl.col("VIAJESTOTALES").sum(),
             pl.col("VALORESPAGADOS").sum(),
