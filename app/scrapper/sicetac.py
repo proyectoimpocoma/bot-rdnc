@@ -68,8 +68,12 @@ async def playwright_sicetac(
         await page.locator(SELECTOR_RESULTADO_CAPTCHA).fill(str(sum_captcha))
         await page.locator(SELECTOR_BT_CALCULAR).click()
 
+        await page.wait_for_timeout(5000)
+    
         value = await page.locator(SELECTOR_COSTO_TOTAL_VIAJE).input_value()
         logger.info(f"Resultado del cálculo: {value}")
+        await page.wait_for_timeout(5000)
+
 
         return value
     except Exception as e:
