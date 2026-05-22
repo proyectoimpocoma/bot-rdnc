@@ -1,6 +1,7 @@
 """Módulo principal para ejecutar el bot de scrapping de RDNC y SICETAC."""
 
 from datetime import date
+import os
 
 from app.core.logging import get_app_logger
 from app.scrapper import playwright_rndc
