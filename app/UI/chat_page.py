@@ -1,12 +1,13 @@
 "Módulo de la interfaz de chat para cotización de rutas RNDC utilizando Streamlit."
 
-import polars as pl
-import streamlit as st
 import json
+
+import streamlit as st
 
 from app.bot.handler import BotHandler
 from app.core import get_app_logger
 from app.data.loader import load_sicetac_ciudades
+from app.models.sicetac import SicetacParams
 from app.UI import components, state
 
 logger = get_app_logger("chat_page")
@@ -14,16 +15,16 @@ logger = get_app_logger("chat_page")
 CONFIGURACIONES_VEHICULO = [
     {"id": "3S3", "valor": "Tractocamión tres ejes con semiremolque de tres ejes"},
     {"id": "3S2", "valor": "Tractocamión tres ejes con semiremolque de dos ejes"},
-    {"id": "2", "valor": "Camión dos ejes - PBV mas de 10500 Kg"},
-    {"id": "2_7_8", "valor": "Camión dos ejes - Livianos PBV 7500-8000 Kg"},
-    {"id": "2_8_9", "valor": "Camión dos ejes - Livianos PBV 8001-9000 Kg"},
-    {"id": "2_9_105", "valor": "Camión dos ejes - Livianos PBV 9001-10500 Kg"},
     {"id": "2S2", "valor": "Tractocamión dos ejes con semiremolque de dos ejes"},
     {"id": "2S3", "valor": "Tractocamión dos ejes con semiremolque de tres ejes"},
     {"id": "3", "valor": "Camión tres ejes"},
     {"id": "V2", "valor": "Volqueta dos ejes"},
     {"id": "V3", "valor": "Volqueta tres ejes"},
     {"id": "V4", "valor": "Volqueta cuatro ejes"},
+    {"id": "2", "valor": "Camión dos ejes - PBV mas de 10500 Kg"},
+    {"id": "2_7_8", "valor": "Camión dos ejes - Livianos PBV 7500-8000 Kg"},
+    {"id": "2_8_9", "valor": "Camión dos ejes - Livianos PBV 8001-9000 Kg"},
+    {"id": "2_9_105", "valor": "Camión dos ejes - Livianos PBV 9001-10500 Kg"},
 ]
 
 
@@ -43,7 +44,15 @@ def get_bot() -> BotHandler:
     return BotHandler()
 
 
-def ejecutar(origen, destino, configuracion, condicion_carga, Carroceria, tipo_carga):
+def ejecutar(
+    origen,
+    destino,
+    configuracion,
+    condicion_carga,
+    carroceria,
+    tipo_carga,
+    horas_cargue_descargue,
+):
     "Ejecuta la consulta de ruta en el bot y muestra los resultados en la interfaz."
     # Bloqueamos el botón y mostramos un spinner durante la operación
     if not origen or not destino:
@@ -57,14 +66,17 @@ def ejecutar(origen, destino, configuracion, condicion_carga, Carroceria, tipo_c
     st.session_state.loading = True
     try:
         with st.spinner("Consultando ruta, por favor espera..."):
-            resultado = bot.run(
-                origen,
-                destino,
-                configuracion,
-                condicion_carga,
-                Carroceria,
-                tipo_carga,
+            params = SicetacParams(
+                origen=origen,
+                destino=destino,
+                configuracion=configuracion,
+                condicion_carga=condicion_carga,
+                carroceria=carroceria,
+                tipo_carga=tipo_carga,
+                horas_cargue_descargue=horas_cargue_descargue,  # 👈 importante
             )
+
+            resultado = bot.run(params)
 
             st.session_state.resultado = resultado
     except ValueError as e:
@@ -94,11 +106,36 @@ def render():
             "COD vehiculo",
             [c["id"] for c in CONFIGURACIONES_VEHICULO],
         )
+        condicion_carga = st.selectbox(
+            "Condición de carga",
+            ["CARGADO", "VACIO"],
+            key="condicion_carga",
+        )
+        horas_cargue_descargue = st.selectbox(
+            "Horas cargue/descargue",
+            ["1", "2", "3", "4", "5", "6"],
+            key="horas_cargue_descargue",
+        )
     with col2:
         origen = st.selectbox(
             "Ciudad de origen",
             ["", *origenes],
             key="origen",
+        )
+        carroceria = st.selectbox(
+            "Carrocería",
+            [
+                "ESTACAS",
+                "ESTIBAS",
+                "TANQUE",
+                "FURGON",
+                "PORTACONTENEDORES",
+                "TRAYLER",
+                "VOLCO",
+                "PLATAFORMA",
+                "FURGON REFRIGERADO",
+            ],
+            key="carroceria",
         )
 
     destinos_disponibles = get_destinos_por_origen(origen)
@@ -109,21 +146,14 @@ def render():
             ["", *destinos_disponibles],
             key="destino",
         )
-
-    # condicion_carga = st.selectbox(
-    # "Condición de carga",
-    # ["CARGADO", "VACIO"],
-    # key="condicion_carga",
-    # )
-    # Carroceria = st.selectbox(
-    #    "Carrocería",
-    #    ["ESTACAS", "CERRADA"],
-    #     key="ESTACAS",
-    # )
-    # tipo_carga = st.selectbox(
-    #    "Tipo de carga",
-    #     ["General", "Peligrosa"],
-    # )
+        tipo_carga = st.selectbox(
+            "Tipo de carga",
+            [
+                "General",
+                "Granel Sólido",
+            ],
+            key="tipo_carga",
+        )
 
     if "loading" not in st.session_state:
         st.session_state.loading = False
@@ -132,7 +162,15 @@ def render():
     st.button(
         "Consultar ruta",
         on_click=ejecutar,
-        args=(origen, destino, configuracion, "CARGADO", "ESTACAS", "General"),
+        args=(
+            origen,
+            destino,
+            configuracion,
+            condicion_carga,
+            carroceria,
+            tipo_carga,
+            horas_cargue_descargue,
+        ),
         disabled=st.session_state.loading,
     )
     if "resultado" in st.session_state and st.session_state.resultado:

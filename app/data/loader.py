@@ -5,7 +5,6 @@ import polars as pl
 import streamlit as st
 
 from app.core import get_app_logger
-from app.scrapper.rndc import playwright_rndc
 
 logger = get_app_logger("loader")
 

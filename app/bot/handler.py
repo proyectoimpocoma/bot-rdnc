@@ -7,6 +7,7 @@ import polars as pl
 
 from app.core.logging import get_app_logger
 from app.data import cargar_data, processor
+from app.models.sicetac import SicetacParams
 from app.nlp.normalizer import normalizar_municipios
 from app.scrapper import playwright_sicetac
 from app.services import consultar_ruta
@@ -28,46 +29,27 @@ class BotHandler:
 
     def _run_scrapping(
         self,
-        origen: str,
-        destino: str,
-        configuracion: str,
-        condicion_carga: str = "CARGADO",
-        Carroceria: str = "ESTACAS",
-        tipo_carga: str = "General",
+        params: SicetacParams,
     ):
         logger.info(
-            f"Ejecutando scrapping con: Origen='{origen}', Destino='{destino}', Configuración='{configuracion}', Condición de Carga='{condicion_carga}', Carrocería='{Carroceria}', Tipo de Carga='{tipo_carga}'"
+            f"Ejecutando scrapping con: Origen='{params.origen}', Destino='{params.destino}', Configuración='{params.configuracion}', Condición de Carga='{params.condicion_carga}', Carrocería='{params.carroceria}', Tipo de Carga='{params.tipo_carga} ', Horas Cargue/Descargue='{params.horas_cargue_descargue}'"
         )
         try:
-            return asyncio.run(
-                playwright_sicetac(
-                    origen,
-                    destino,
-                    configuracion,
-                    condicion_carga,
-                    Carroceria,
-                    tipo_carga,
-                )
-            )
+            return asyncio.run(playwright_sicetac(params))
         except Exception as e:
             logger.error(f"Error ejecutando playwright_sicetac: {e!s}")
             return False
 
     def run(
         self,
-        origen: str,
-        destino: str,
-        configuracion: str,
-        condicion_carga: str,
-        Carroceria: str,
-        tipo_carga: str,
+        params: SicetacParams,
     ) -> dict:
         logger.info(
             "Iniciando proceso de consulta de ruta con los siguientes parámetros:"
         )
         # Normalizar los nombres de origen y destino usando la lista combinada de municipios
-        origen_df = normalizar_municipios(origen, self.municipios)
-        destino_df = normalizar_municipios(destino, self.municipios)
+        origen_df = normalizar_municipios(params.origen, self.municipios)
+        destino_df = normalizar_municipios(params.destino, self.municipios)
 
         if not origen_df or not destino_df:
             raise ValueError(
@@ -75,23 +57,17 @@ class BotHandler:
                 "Selecciona ambos campos antes de continuar."
             )
 
-        costo = self._run_scrapping(
-            origen,
-            destino,
-            configuracion,
-            condicion_carga,
-            Carroceria,
-            tipo_carga,
-        )
+        costo = self._run_scrapping(params)
+
         return {
-            "origen": origen,
-            "destino": destino,
-            "configuracion": configuracion,
+            "origen": params.origen,
+            "destino": params.destino,
+            "configuracion": params.configuracion,
             "costo_sicetac": costo,
             "ruta_db": consultar_ruta(
                 self.df,
                 origen=origen_df,
                 destino=destino_df,
-                configuracion=configuracion,
+                configuracion=params.configuracion,
             ),
         }

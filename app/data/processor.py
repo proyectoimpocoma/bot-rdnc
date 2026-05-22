@@ -6,7 +6,6 @@ logger = get_app_logger("processor")
 
 
 def processor(df: pl.DataFrame):
-    logger.info(df.head())
     df = df.filter(
         ~pl.col("NATURALEZACARGA").is_in(["Carga Peligrosa", "Desechos Peligrosos"])
     )
@@ -32,6 +31,5 @@ def processor(df: pl.DataFrame):
         )
         .sort("VALOR_PROMEDIO_UNITARIO")
     )
-    logger.info(df_grouped.head())
 
     return df_grouped
