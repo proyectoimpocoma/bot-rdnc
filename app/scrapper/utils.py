@@ -45,7 +45,9 @@ async def export_sicetac_combinaciones(
     """Exporta combinaciones origen-destino desde SICETAC de forma robusta."""
 
     # ✅ Recomendado en Windows para evitar errores de asyncio
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    import sys
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]
 
     playwright, browser, context, page = await new_rndc_page()
 

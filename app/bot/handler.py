@@ -5,7 +5,7 @@ from pathlib import Path
 
 import polars as pl
 
-from app.core.logging import get_app_logger
+from app.core import get_app_logger, sicetac_cache
 from app.data import cargar_data, processor
 from app.models.sicetac import SicetacParams
 from app.nlp.normalizer import normalizar_municipios
@@ -31,11 +31,44 @@ class BotHandler:
         self,
         params: SicetacParams,
     ):
+        # Generar una clave única para la consulta normalizada
+        key_parts = [
+            params.origen.strip().lower(),
+            params.destino.strip().lower(),
+            params.configuracion.strip().lower(),
+            params.condicion_carga.strip().lower(),
+            params.carroceria.strip().lower(),
+            params.tipo_carga.strip().lower(),
+            params.horas_cargue_descargue.strip().lower(),
+        ]
+        cache_key = ":".join(key_parts)
+
+        # Intentar obtener de la caché persistente
+        try:
+            cached_val = sicetac_cache.get(cache_key)
+            if cached_val:
+                logger.info(
+                    f"Caché HIT para ruta: {params.origen} -> {params.destino} | Valor recuperado: {cached_val}"
+                )
+                return cached_val
+        except Exception as e:
+            logger.warning(f"Error al leer del caché persistente: {e!s}")
+
         logger.info(
-            f"Ejecutando scrapping con: Origen='{params.origen}', Destino='{params.destino}', Configuración='{params.configuracion}', Condición de Carga='{params.condicion_carga}', Carrocería='{params.carroceria}', Tipo de Carga='{params.tipo_carga} ', Horas Cargue/Descargue='{params.horas_cargue_descargue}'"
+            f"Caché MISS. Ejecutando scrapping real con: Origen='{params.origen}', Destino='{params.destino}', Configuración='{params.configuracion}', Condición de Carga='{params.condicion_carga}', Carrocería='{params.carroceria}', Tipo de Carga='{params.tipo_carga} ', Horas Cargue/Descargue='{params.horas_cargue_descargue}'"
         )
         try:
-            return asyncio.run(playwright_sicetac(params))
+            costo = asyncio.run(playwright_sicetac(params))
+            if costo:
+                try:
+                    # Almacenar en caché persistente durante 7 días (604800 segundos)
+                    sicetac_cache.set(cache_key, costo, expire=604800)
+                    logger.info(
+                        f"Guardado en caché persistente: {cache_key} -> {costo}"
+                    )
+                except Exception as e:
+                    logger.warning(f"Error al escribir en el caché persistente: {e!s}")
+            return costo
         except Exception as e:
             logger.error(f"Error ejecutando playwright_sicetac: {e!s}")
             return False

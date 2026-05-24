@@ -14,3 +14,17 @@ logs
 
 # Docker
 docker/**/.env
+
+# OS/IDE files
+.DS_Store
+.vscode/
+
+# Local databases & Cache
+*.db
+data/sicetac_cache/
+
+# Large data files
+*.csv
+data/*.xlsx
+data/*.xls
+data/*.csv
