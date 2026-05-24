@@ -46,6 +46,7 @@ async def export_sicetac_combinaciones(
 
     # ✅ Recomendado en Windows para evitar errores de asyncio
     import sys
+
     if sys.platform == "win32":
         asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())  # type: ignore[attr-defined]
 

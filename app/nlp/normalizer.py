@@ -1,17 +1,9 @@
-import unicodedata
-
 from rapidfuzz import fuzz, process, utils
 
 from app.core import get_app_logger
+from app.nlp.parser import clean_text, parse_rndc, parse_sicetac
 
 logger = get_app_logger("normalizer")
-
-
-def clean_text(text: str) -> str:
-    """Quita tildes, signos diacríticos y convierte a mayúsculas."""
-    text = unicodedata.normalize("NFD", text)
-    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
-    return text.lower().strip()
 
 
 def fuzzy_match_best(
@@ -35,6 +27,9 @@ def fuzzy_match_best(
 def normalizar_municipios(
     nombre: str | None, lista: list[str], umbral: int = 80
 ) -> str | None:
+    """
+    Función de normalización heredada. Preservada para compatibilidad.
+    """
     if not nombre or not lista:
         return None
 
@@ -64,7 +59,6 @@ def normalizar_municipios(
         return resultado_completo
 
     # --- RECHAZADO: Si ninguno superó el umbral ---
-    # Logeamos el que sacó mejor puntaje para saber qué falló
     match_completo = process.extractOne(
         nombre_limpio,
         lista,
@@ -76,4 +70,93 @@ def normalizar_municipios(
         logger.warning(
             f"❌ RECHAZADO: '{nombre}' -> '{mejor_res}' (Mejor Score: {mejor_score:.1f} < {umbral})"
         )
+    return None
+
+
+def normalizar_sicetac_a_rndc(
+    entrada_sicetac: str | None,
+    lista_rndc: list[str],
+    lookup: dict[str, str],
+    umbral: int = 80,
+) -> str | None:
+    """
+    Normaliza una entrada de SICETAC (Tipo A, B o C) a un valor de RNDC.
+
+    1. Busca en O(1) en el lookup table cargado.
+    2. Si falla, realiza fallback fuzzy anclado por el departamento de la entrada.
+    3. Si el fallback tiene éxito, lo guarda en el lookup para consultas futuras (cache-aside).
+    """
+    if not entrada_sicetac or not lista_rndc:
+        return None
+
+    # 1. HIT en lookup table
+    if entrada_sicetac in lookup:
+        logger.info(
+            f"🎯 HIT lookup table: '{entrada_sicetac}' -> '{lookup[entrada_sicetac]}'"
+        )
+        return lookup[entrada_sicetac]
+
+    # 2. MISS - Aplicar fallback estructurado por departamento
+    logger.info(
+        f"🔍 MISS lookup table para: '{entrada_sicetac}'. Aplicando fallback por dpto..."
+    )
+
+    parsed_sic = parse_sicetac(entrada_sicetac)
+    muni_clean = clean_text(parsed_sic["municipio"])
+    dpto_clean = clean_text(parsed_sic["departamento"])
+    lugar_clean = clean_text(parsed_sic["lugar"])
+
+    # Filtrar candidatos de RNDC por departamento
+    candidates = []
+    for cand in lista_rndc:
+        if cand is None:
+            continue
+        parsed_cand = parse_rndc(cand)
+        cand_dpto_clean = clean_text(parsed_cand["departamento"])
+
+        if dpto_clean:
+            # Si hay dpto en la entrada, anclar por él
+            if cand_dpto_clean == dpto_clean:
+                candidates.append((cand, clean_text(parsed_cand["municipio"])))
+        else:
+            candidates.append((cand, clean_text(parsed_cand["municipio"])))
+
+    # Si se filtró por dpto y no hay candidatos, remover el ancla de dpto como fallback
+    if dpto_clean and not candidates:
+        candidates = [
+            (cand, clean_text(parse_rndc(cand)["municipio"]))
+            for cand in lista_rndc
+            if cand is not None
+        ]
+
+    # Realizar fuzzy matching
+    best_cand = None
+    best_score = -1.0
+
+    for cand_full, cand_muni_clean in candidates:
+        score_muni = fuzz.ratio(muni_clean, cand_muni_clean)
+
+        if lugar_clean and lugar_clean != muni_clean:
+            full_sic_clean = clean_text(
+                parsed_sic["lugar"] + " " + parsed_sic["municipio"]
+            )
+            score_full = fuzz.ratio(full_sic_clean, cand_muni_clean)
+        else:
+            score_full = score_muni
+
+        score = max(score_muni, score_full)
+
+        if score > best_score:
+            best_score = score
+            best_cand = cand_full
+
+    # Si supera el umbral, retornar y almacenar en lookup (cache-aside)
+    if best_cand and best_score >= umbral:
+        logger.info(
+            f"✅ Fallback ACEPTADO: '{entrada_sicetac}' -> '{best_cand}' (Score: {best_score:.1f})"
+        )
+        lookup[entrada_sicetac] = best_cand
+        return best_cand
+
+    logger.warning(f"❌ Fallback RECHAZADO para: '{entrada_sicetac}'")
     return None

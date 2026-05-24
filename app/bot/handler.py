@@ -1,6 +1,5 @@
-""" """
-
 import asyncio
+import json
 from pathlib import Path
 
 import polars as pl
@@ -8,11 +7,12 @@ import polars as pl
 from app.core import get_app_logger, sicetac_cache
 from app.data import cargar_data, processor
 from app.models.sicetac import SicetacParams
-from app.nlp.normalizer import normalizar_municipios
+from app.nlp.normalizer import normalizar_sicetac_a_rndc
 from app.scrapper import playwright_sicetac
 from app.services import consultar_ruta
 
 PATH_FILE = Path("data/RNDC.xlsx")
+PATH_LOOKUP = Path("data/sicetac_to_rndc.json")
 
 logger = get_app_logger("bot_handler")
 
@@ -26,6 +26,19 @@ class BotHandler:
         self.municipios = (
             pl.concat([self.origenes, self.destinos]).unique().unique().to_list()
         )
+
+        # Cargar el lookup table de normalización
+        if PATH_LOOKUP.exists():
+            try:
+                with PATH_LOOKUP.open("r", encoding="utf-8") as f:
+                    self.lookup = json.load(f)
+                logger.info(f"💾 Lookup table de normalización cargado exitosamente ({len(self.lookup)} entradas)")
+            except Exception as e:
+                logger.error(f"Error al cargar el lookup table: {e!s}")
+                self.lookup = {}
+        else:
+            logger.warning(f"⚠️ No se encontró el lookup table en {PATH_LOOKUP}. Se utilizará fallback fuzzy completo.")
+            self.lookup = {}
 
     def _run_scrapping(
         self,
@@ -80,9 +93,9 @@ class BotHandler:
         logger.info(
             "Iniciando proceso de consulta de ruta con los siguientes parámetros:"
         )
-        # Normalizar los nombres de origen y destino usando la lista combinada de municipios
-        origen_df = normalizar_municipios(params.origen, self.municipios)
-        destino_df = normalizar_municipios(params.destino, self.municipios)
+        # Normalizar los nombres de origen y destino usando la lista combinada de municipios y el lookup table
+        origen_df = normalizar_sicetac_a_rndc(params.origen, self.municipios, self.lookup)
+        destino_df = normalizar_sicetac_a_rndc(params.destino, self.municipios, self.lookup)
 
         if not origen_df or not destino_df:
             raise ValueError(
