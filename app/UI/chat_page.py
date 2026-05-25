@@ -110,20 +110,6 @@ def render():
             5. Indica el **tipo de carga** (General o Granel Sólido).
             6. Especifica las **horas de cargue/descargue**.
             7. Haz clic en "Consultar ruta" para obtener la cotización.
-
-            **Configuraciones de vehículo disponibles:** \n
-            3S3: Tractocamión tres ejes con semiremolque de tres ejes \n
-            3S2: Tractocamión tres ejes con semiremolque de dos ejes \n
-            2S2: Tractocamión dos ejes con semiremolque de dos ejes \n
-            2S3: Tractocamión dos ejes con semiremolque de tres ejes \n
-            3: Camión tres ejes \n
-            V2: Volqueta dos ejes \n
-            V3: Volqueta tres ejes\n
-            V4: Volqueta cuatro ejes\n
-            2: Camión dos ejes - PBV mas de 10500 Kg\n
-            2_7_8: Camión dos ejes - Livianos PBV 7500-8000 Kg\n
-            2_8_9: Camión dos ejes - Livianos PBV 8001-9000 Kg\n
-            2_9_105: Camión dos ejes - Livianos PBV 9001-10500 Kg\n
             """
         )
 
@@ -131,7 +117,7 @@ def render():
     with col1:
         configuracion = st.selectbox(
             "COD vehiculo",
-            [c["id"] for c in CONFIGURACIONES_VEHICULO],
+            [f"{c['id']} - {c['valor']}" for c in CONFIGURACIONES_VEHICULO],
         )
         condicion_carga = st.selectbox(
             "Condición de carga",
